@@ -59,17 +59,7 @@ layer {
   top: "conv1"
 }
 
-layer {
-  name: "pool1"
-  type: "Pooling"
-  bottom: "conv1"
-  top: "pool1"
-  pooling_param {
-    pool: MAX
-    kernel_size: 2 # 
-    stride: 2      
-  }
-}
+
 
 layer {
   name: "conv2"
@@ -156,17 +146,7 @@ layer {
   top: "conv3"
 }
 
-layer {
-  name: "pool3"
-  type: "Pooling"
-  bottom: "conv3"
-  top: "pool3"
-  pooling_param {
-    pool: MAX
-    kernel_size: 3 # 
-    stride: 2      
-  }
-}
+
 
 layer {
   name: "conv4"
@@ -182,7 +162,7 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: 512
+    num_output: 256
     pad: 1
     kernel_size: 3
     stride: 1
@@ -204,8 +184,54 @@ layer {
   top: "conv4"
 }
 
+layer {
+  name: "pool2"
+  type: "Pooling"
+  bottom: "conv4"
+  top: "pool2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2 # 
+    stride: 2      
+  }
+}
+
+layer {
+  name: "conv5"
+  type: "Convolution"
+  bottom: "pool3"
+  top: "conv4"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    pad: 1
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
 
 
+layer {
+  name: "relu4"
+  type: "ReLU"
+  bottom: "conv5"
+  top: "conv5"
+}
 
 ######## Upsampling################
 
@@ -254,80 +280,13 @@ layer {
   param { lr_mult: 1 decay_mult: 0.5 }
 }
 
-layer {
-  name: "relu6"
-  type: "ReLU"
-  bottom: "upsample2"
-  top: "upsample2"
-}
 
-
-layer {
-  name: "upsample3" 
-  type: "Deconvolution"
-  bottom: "upsample2" 
-  top: "upsample3"
-  convolution_param {
-    kernel_size: 2 
-    stride: 2
-    num_output: 32
-    pad: 0
-    weight_filler {
-      type: "gaussian"
-      std: 0.1
-    }
-    #bias_term: false
-  }
-  param {
-    lr_mult: 1
-    decay_mult: 0.5
-  }
-
-  }
-
-layer {
-  name: "relu7"
-  type: "ReLU"
-  bottom: "upsample3"
-  top: "upsample3"
-}
-
-
-
-layer {
-  name: "conv5"
-  type: "Convolution"
-  bottom: "upsample3"
-  top: "conv5"
-  param {
-    lr_mult: 1
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 2
-    decay_mult: 0
-  }
-  convolution_param {
-    num_output: 1
-    pad: 1
-    kernel_size: 3
-    stride: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.1
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
 
 
 layer {
   name: "loss"
   type: "EuclideanLoss"
-  bottom: "conv5"
+  bottom: "upsample2"
   bottom: "label"
   top: "loss"
 }
